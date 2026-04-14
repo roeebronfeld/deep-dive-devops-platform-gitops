@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dev-deep-dive-platform
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://example.com/app-repository.git
+    targetRevision: main
+    path: helm/deep-dive-devops-platform
+    helm:
+      values: |
+        backend:
+          replicaCount: 2
+        frontend:
+          replicaCount: 1
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
