@@ -8,7 +8,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://example.com/app-repository.git
+    repoURL:  https://github.com/roeebronfeld/deep-dive-devops-platform-app.git
     targetRevision: main
     path: helm/deep-dive-devops-platform
     helm:
