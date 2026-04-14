@@ -1,0 +1,9 @@
+backend:
+  replicaCount: 2
+  image:
+    tag: "latest"
+
+frontend:
+  replicaCount: 1
+  image:
+    tag: "latest"
