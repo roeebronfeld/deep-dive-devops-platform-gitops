@@ -13,24 +13,21 @@ metadata:
 spec:
   project: default
 
-  source:
-    # The child app should render from a single repo while we stabilize the control plane.
-    # This removes cross-repo value resolution as a failure point for the immediate recovery.
-    repoURL: https://github.com/roeebronfeld/deep-dive-devops-platform-app.git
-    targetRevision: main
-    path: helm/deep-dive-devops-platform
-    helm:
-      # Inline values are acceptable here temporarily because they keep the Application self-contained.
-      # Once the root app is stable again, we can reintroduce external values from the GitOps repo.
-      values: |
-        backend:
-          replicaCount: 3
-          image:
-            tag: "latest"
-        frontend:
-          replicaCount: 1
-          image:
-            tag: "latest"
+  sources:
+    # The chart stays in the app repository so application release logic remains owned there.
+    - repoURL: https://github.com/roeebronfeld/deep-dive-devops-platform-app.git
+      targetRevision: main
+      path: helm/deep-dive-devops-platform
+      helm:
+        # ArgoCD resolves this file from the GitOps source declared below.
+        # This keeps environment-specific configuration in the GitOps repo instead of embedding it here.
+        valueFiles:
+          - $values/apps/dev/values.yaml
+    # The GitOps repository is mounted as a second source so the chart can consume dev values from it.
+    # This is the standard ArgoCD pattern when chart code and environment config live in separate repos.
+    - repoURL: https://github.com/roeebronfeld/deep-dive-devops-platform-gitops.git
+      targetRevision: main
+      ref: values
 
   destination:
     # This is the cluster and namespace where the workload will be deployed.
