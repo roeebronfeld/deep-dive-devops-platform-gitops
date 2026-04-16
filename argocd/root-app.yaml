@@ -1,0 +1,28 @@
+# This root Application is the single ArgoCD object applied manually.
+# After this exists, ArgoCD reconciles the rest of the GitOps repo itself.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: argocd
+  finalizers:
+    # Ensures child resources are deleted through ArgoCD if this app is removed.
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # The GitOps repository is the source of truth for desired cluster state.
+    repoURL: https://github.com/roeebronfeld/deep-dive-devops-platform-gitops.git
+    targetRevision: main
+    # ArgoCD scans this directory for child Application manifests.
+    path: argocd/apps
+  destination:
+    # The root app is managed by the ArgoCD control plane in its own namespace.
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      # Prune removes child Applications that are deleted from Git.
+      prune: true
+      # selfHeal restores drift when live state diverges from Git.
+      selfHeal: true

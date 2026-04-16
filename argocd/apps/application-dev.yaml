@@ -1,0 +1,46 @@
+---
+# This child Application describes the dev workload ArgoCD should deploy.
+# It lives under the root app path so ArgoCD can discover and manage it from Git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dev-deep-dive-platform
+  namespace: argocd
+  finalizers:
+    # Ensures the deployed Kubernetes resources are cleaned up through ArgoCD.
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  project: default
+
+  source:
+    # The child app should render from a single repo while we stabilize the control plane.
+    # This removes cross-repo value resolution as a failure point for the immediate recovery.
+    repoURL: https://github.com/roeebronfeld/deep-dive-devops-platform-app.git
+    targetRevision: main
+    path: helm/deep-dive-devops-platform
+    helm:
+      # Inline values are acceptable here temporarily because they keep the Application self-contained.
+      # Once the root app is stable again, we can reintroduce external values from the GitOps repo.
+      values: |
+        backend:
+          replicaCount: 2
+          image:
+            tag: "latest"
+        frontend:
+          replicaCount: 1
+          image:
+            tag: "latest"
+
+  destination:
+    # This is the cluster and namespace where the workload will be deployed.
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      # Prune removes resources no longer defined by the chart or values in Git.
+      prune: true
+      # selfHeal lets ArgoCD correct manual drift in the cluster.
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
