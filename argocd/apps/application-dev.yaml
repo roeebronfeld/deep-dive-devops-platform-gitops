@@ -24,7 +24,7 @@ spec:
       # Once the root app is stable again, we can reintroduce external values from the GitOps repo.
       values: |
         backend:
-          replicaCount: 2
+          replicaCount: 3
           image:
             tag: "latest"
         frontend:
